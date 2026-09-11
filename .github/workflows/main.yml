@@ -1,0 +1,43 @@
+name: VPS Session
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'
+
+jobs:
+  vps-session:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set hostname
+        run: |
+          sudo hostnamectl set-hostname my-vps
+          echo "Hostname: $(hostname)"
+
+      - name: Install Tailscale
+        run: |
+          curl -fsSL https://tailscale.com/install.sh | sh
+
+      - name: Connect to Tailscale
+        run: |
+          sudo tailscale up \
+            --auth-key="${{ secrets.TAILSCALE_AUTHKEY }}" \
+            --hostname=my-vps
+
+      - name: Show Tailscale information
+        run: |
+          echo "=== Tailscale Status ==="
+          sudo tailscale status
+          echo ""
+          echo "=== Tailscale IPv4 ==="
+          sudo tailscale ip -4
+
+      - name: Start tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
