@@ -1,9 +1,9 @@
 name: VPS Session
 
 on:
+workflow_dispatch:
 schedule:
 - cron: '0 */6 * * *'
-workflow_dispatch:
 
 jobs:
 vps-session:
@@ -17,7 +17,7 @@ steps:
   - name: Set hostname
     run: |
       sudo hostnamectl set-hostname my-vps
-      hostname
+      echo "Hostname: $(hostname)"
 
   - name: Install Tailscale
     run: |
@@ -29,9 +29,12 @@ steps:
         --auth-key="${{ secrets.TAILSCALE_AUTHKEY }}" \
         --hostname=my-vps
 
-  - name: Check Tailscale
+  - name: Show Tailscale information
     run: |
+      echo "=== Tailscale Status ==="
       sudo tailscale status
+      echo ""
+      echo "=== Tailscale IPv4 ==="
       sudo tailscale ip -4
 
   - name: Start tmate session
